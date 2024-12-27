@@ -69,7 +69,7 @@ O arquivo service-account.json contém informações sensíveis e deve ser ignor
 
 Exemplo de entrada no .gitignore:
 
-# Ignorar arquivo de chave do Firebase
+\# Ignorar arquivo de chave do Firebase
 src/config/service-account.json
 
 
