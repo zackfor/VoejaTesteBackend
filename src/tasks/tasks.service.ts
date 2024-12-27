@@ -23,7 +23,7 @@ export class TasksService {
     async findOneTask(id: string) {
         const taskSearchedFor = await this.tasksCollection.doc(id).get();
         if (!taskSearchedFor.exists) {
-            throw new NotFoundException(`Tarefa ${id} nao encontrado`);
+            throw new NotFoundException(`Tarefa ${id} não encontrada`);
         }
         return { id: taskSearchedFor.id, ...taskSearchedFor.data() };
     }
@@ -36,8 +36,14 @@ export class TasksService {
     }
 
     async deleteTask(id: string) {
-        await this.tasksCollection.doc(id).delete();
-        return { message: `Tarefa ${id} deletado com sucesso` };
+        const taskToDelete = this.tasksCollection.doc(id);
+        const task = await taskToDelete.get();
+        
+        if (!task.exists) {
+            throw new NotFoundException(`Tarefa ${id} não encontrada`);
+        }
+        await taskToDelete.delete();
+        return { message: `Tarefa ${id} deletada com sucesso` };
     }
 
 }

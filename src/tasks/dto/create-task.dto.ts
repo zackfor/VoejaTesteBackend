@@ -4,26 +4,26 @@ import { ApiProperty } from "@nestjs/swagger";
 export enum TaskStatus {
     PENDENTE = "pendente",
     EM_ANDAMENTO = "em andamento",
-    CONCLUIDA = "concluida",
+    CONCLUIDA = "concluída",
 }
 
 export class CreateTaskDto {
     @ApiProperty({
-        description: "titulo da tarefa",
+        description: "Titulo da tarefa",
         example: "Titulo",
     })
     @IsString()
     title: string;
 
     @ApiProperty({
-        description: "descricao da tarefa",
-        example: "Descricao",
+        description: "Descrição da tarefa",
+        example: "Descrição",
     })
     @IsString()
     description: string;
 
     @ApiProperty({
-        description: "status da tarefa",
+        description: "Status da tarefa. Pode ser 'pendente', 'em andamento', ou 'conluída'.",
         example: "pendente",
         enum: TaskStatus,
     })
