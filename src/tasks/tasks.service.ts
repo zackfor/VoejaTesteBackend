@@ -1,39 +1,43 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Firestore } from '@google-cloud/firestore';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 
 @Injectable()
 export class TasksService {
-    private tasks = [];
+    constructor(@Inject("FIRESTORE") private readonly firestore: Firestore) {}
+
+    private tasksCollection = this.firestore.collection("tasks");
 
     async create(createTaskDto: CreateTaskDto) {
-        const newTask = {id: Date.now(), ...createTaskDto};
-        this.tasks.push(newTask);
-        return newTask;
+        const newTask = await this.tasksCollection.add(createTaskDto);
+        const createdTask = (await newTask.get()).data();
+        return { id: newTask.id, ...createdTask};
     }
 
     async findAllTasks() {
-        return this.tasks;
+        const allTasks = await this.tasksCollection.get();
+        return allTasks.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     }
 
     async findOneTask(id: string) {
-        return this.tasks.find((task) => task.id === parseInt(id));
+        const taskSearchedFor = await this.tasksCollection.doc(id).get();
+        if (!taskSearchedFor.exists) {
+            throw new NotFoundException(`Tarefa ${id} nao encontrado`);
+        }
+        return { id: taskSearchedFor.id, ...taskSearchedFor.data() };
     }
 
     async updateTask(id: string, updateTaskDto: UpdateTaskDto) {
-        const taskIndex = this.tasks.findIndex((task) => task.id === parseInt(id));
-        if (taskIndex === -1) return null;
-
-        this.tasks[taskIndex] = { ...this.tasks[taskIndex], ...updateTaskDto };
-        return this.tasks[taskIndex];
+        const taskUpdate = this.tasksCollection.doc(id);
+        await taskUpdate.update(updateTaskDto as { [key: string]: any });
+        const updatedTask = (await taskUpdate.get()).data();
+        return { id, ...updatedTask };
     }
 
     async deleteTask(id: string) {
-        const taskIndex = this.tasks.findIndex((task) => task.id === parseInt(id));
-        if (taskIndex === -1) return null;
-
-        const deletedTask = this.tasks.splice(taskIndex, 1);
-        return deletedTask[0];
+        await this.tasksCollection.doc(id).delete();
+        return { message: `Tarefa ${id} deletado com sucesso` };
     }
 
 }
